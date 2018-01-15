@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
                 for(int i =0;i<params.length;i++){
                         results[i] = faceServiceClient.identity(personGroupId, // person group id
                                 params[i] // face ids
-                                ,1); // max number of candidates returne
+                                ,1); // max number of candidates returned
                 }
 
                 return flatten(results);
