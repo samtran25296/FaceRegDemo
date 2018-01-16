@@ -26,10 +26,10 @@ public class MainActivity extends AppCompatActivity {
     private Face[] facesDetected;
     private String groupID="team1";
     Bitmap mBitmapp;
-    private Uri imageUri;
     ImageMatrixTouchHandler touchZoomHandler;
     double relation; //Xac dinh text size
     Button browserBtn, cameraBtn, identifyBtn;
+    private Uri imageUri;
     private FaceServiceClient faceServiceClient =
             new FaceServiceRestClient("https://westcentralus.api.cognitive.microsoft.com/face/v1.0", "a1df5290c9c14a54b1c723a471953709");
     @Override
@@ -66,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else{
                     //Compress file size to fit 4MB
-                    long fileSize = lengthbmp;
                     long compressPercent = 4194304/(lengthbmp/100);
                     ByteArrayOutputStream compressOut = new ByteArrayOutputStream();
                     mBitmapp.compress(Bitmap.CompressFormat.JPEG,(int)compressPercent,compressOut);
@@ -77,12 +76,16 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        Button button3= findViewById(R.id.button2);
-        button3.setOnClickListener(new View.OnClickListener() {
+        cameraBtn= findViewById(R.id.button2);
+        cameraBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent("android.media.action.IMAGE_CAPTURE");
-                startActivityForResult(i, CAPTURE_IMG);
+                Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
+                File photo = new File(Environment.getExternalStorageDirectory(),"TempIMG");
+                intent.putExtra(MediaStore.EXTRA_OUTPUT,
+                        Uri.fromFile(photo));
+                imageUri = Uri.fromFile(photo);
+                startActivityForResult(intent, CAPTURE_IMG);
 
             }
         });
@@ -94,9 +97,8 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == PICK_IMAGE && resultCode == RESULT_OK && data != null && data.getData() != null) {
             Uri uri = data.getData();
             try {
-                touchZoomHandler.cancelAnimation();
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                mBitmapp =bitmap;
+                mBitmapp = bitmap;
                 ImageView imageView = findViewById(R.id.imageView1);
                 imageView.setImageBitmap(bitmap);
                 identifyBtn.setEnabled(true);
@@ -106,6 +108,22 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        if (requestCode == CAPTURE_IMG && resultCode == RESULT_OK) {
+            try {
+
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+                mBitmapp = bitmap;
+                ImageView imageView = findViewById(R.id.imageView1);
+                imageView.setImageBitmap(bitmap);
+                identifyBtn.setEnabled(true);
+
+            } catch (Exception e) {
+                Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT)
+                        .show();
+
+            }
+
+        }
     }
 
   //Xac dinh khuon mac
@@ -260,7 +278,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Person person) {
             mDialog.dismiss();
-            ImageView img = (ImageView)findViewById(R.id.imageView1);
+            ImageView img =findViewById(R.id.imageView1);
             img.setImageBitmap(drawFaceRectangleOnBitmap(mBitmapp,this.personFace,person.name));
 
         }
@@ -319,7 +337,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static IdentifyResult[] flatten(IdentifyResult[][] data) {
-        ArrayList<IdentifyResult> list = new ArrayList<IdentifyResult>();
+        ArrayList<IdentifyResult> list = new ArrayList<>();
 
         for(int i = 0; i < data.length; i++) {
             list.addAll( Arrays.asList(data[i]) );
