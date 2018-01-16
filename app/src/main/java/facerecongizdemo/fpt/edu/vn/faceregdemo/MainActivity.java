@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(IdentifyResult[] identifyResults) {
             mDialog.dismiss();
             for(int i=0;i<identifyResults.length;i++){
-                if(identifyResults[i].candidates.size()!=0 && identifyResults[i].candidates.get(0).confidence>=0.7) {
+                if(identifyResults[i].candidates.size()!=0 && identifyResults[i].candidates.get(0).confidence>=0.65) {
 
                     new PersonDetectionTask(personGroupId,facesDetected[i]).execute(identifyResults[i].candidates.get(0).personId);
                 }
